@@ -3,44 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webmapping avec Leaflet</title>
+    <title>Carte interactive</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map {
-            height: 600px;
+        /* Style général */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
         }
+
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+            margin: 10px;
+            color: #0077cc;
+        }
+
+        #map {
+            height: calc(100vh - 100px); /* Carte occupe presque tout l'écran */
+        }
+
         #locate-btn {
             position: absolute;
             top: 10px;
             left: 10px;
-            background: #fff;
-            padding: 10px;
-            border: 1px solid #ccc;
+            background: #0077cc;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1000;
+        }
+
+        #locate-btn:hover {
+            background-color: #005fa3;
+        }
+
+        .popup-table {
+            font-size: 0.9em;
+            color: #444;
+        }
+
+        /* Adaptabilité pour petits écrans */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2em;
+            }
+
+            #locate-btn {
+                font-size: 0.9em;
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Carte interactive avec Leaflet</h1>
+    <h1>Carte interactive pour l'enquete dans la ville de Thies</h1>
     <div id="map"></div>
     <button id="locate-btn">Localiser</button>
+
     <script>
         // Initialisation de la carte
         var map = L.map('map').setView([14.79222, -16.92516], 12);
 
         // Ajout des tuiles OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 25,
+            maxZoom: 18,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
         // Données GeoJSON
         var geojsonData = {
             "type": "FeatureCollection",
-            "features": [
+            "features":[
 { "type": "Feature", "properties": { "OBJECTID": 12, "DESCRIPTIF": "Clinique", "REG": "THIES", "COD_REG": "07", "DEPT": "THIES", "COD_DEPT": "072", "CAV": "THIES", "COD_CAV": "072301", "LONGITUDE": -16.92835563, "LATITUDE": 14.790552489, "NUM_DEPT": "2", "NUM_CAV": "301", "ARR": "VILLE DE THIES", "MILLIEU": "URBAIN", "TYP_QVH": "QUARTIER", "OBSERVATIO": "CABINET DENTAIRE AMINATA", "COMMUNE": "THIES OUEST", "NUM_COMMUN": "22", "COD_COMMUN": "07230122", "QUARTIER": "CARRIERE", "NUM_QUARTI": "00100", "COD_QUARTI": "0723012200100", "STATUT_PAR": "NON HABITEE" }, "geometry": { "type": "Point", "coordinates": [ -16.928355629999942, 14.790552489000051 ] } },
 { "type": "Feature", "properties": { "OBJECTID": 35, "DESCRIPTIF": "Clinique", "REG": "THIES", "COD_REG": "07", "DEPT": "THIES", "COD_DEPT": "072", "CAV": "THIES", "COD_CAV": "072301", "LONGITUDE": -16.938583079000001, "LATITUDE": 14.788162895, "NUM_DEPT": "2", "NUM_CAV": "301", "ARR": "VILLE DE THIES", "MILLIEU": "URBAIN", "TYP_QVH": "QUARTIER", "OBSERVATIO": "ACCESS OXYGEN", "COMMUNE": "THIES OUEST", "NUM_COMMUN": "22", "COD_COMMUN": "07230122", "QUARTIER": "HLM DIXIEME", "NUM_QUARTI": "00500", "COD_QUARTI": "0723012200500", "STATUT_PAR": "NON HABITEE" }, "geometry": { "type": "Point", "coordinates": [ -16.938583078999955, 14.788162895000028 ] } },
 { "type": "Feature", "properties": { "OBJECTID": 60, "DESCRIPTIF": "Clinique", "REG": "THIES", "COD_REG": "07", "DEPT": "THIES", "COD_DEPT": "072", "CAV": "THIES", "COD_CAV": "072301", "LONGITUDE": -16.927365085000002, "LATITUDE": 14.795663057000001, "NUM_DEPT": "2", "NUM_CAV": "301", "ARR": "VILLE DE THIES", "MILLIEU": "URBAIN", "TYP_QVH": "QUARTIER", "OBSERVATIO": "CLINIQUE CONCEPTION", "COMMUNE": "THIES OUEST", "NUM_COMMUN": "22", "COD_COMMUN": "07230122", "QUARTIER": "ESCALE SUD", "NUM_QUARTI": "00600", "COD_QUARTI": "0723012200600", "STATUT_PAR": "NON HABITEE" }, "geometry": { "type": "Point", "coordinates": [ -16.927365084999963, 14.795663057000066 ] } },
@@ -225,44 +266,43 @@
         // Ajout des données GeoJSON à la carte
         L.geoJSON(geojsonData, {
             onEachFeature: function (feature, layer) {
-                layer.bindPopup(
-                    `<table class="popup-table">
-                        <tr><td>Identifiant : </td><td>${feature.properties.OBJECTID}</td></tr>
-                        <tr><td>Type : </td><td>${feature.properties.DESCRIPTIF}</td></tr>
-                        <tr><td>Commune : </td><td>${feature.properties.COMMUNE}</td></tr>
-                        <tr><td>Quartier : </td><td>${feature.properties.QUARTIER}</td></tr>
-                        <tr><td>Nom struct : </td><td>${feature.properties.OBSERVATIO}</td></tr>
-                    </table>`
-                );
+                layer.bindPopup(`
+                    <table class="popup-table">
+                        <tr><td><strong>Identifiant :</strong></td><td>${feature.properties.OBJECTID}</td></tr>
+                        <tr><td><strong>Type :</strong></td><td>${feature.properties.DESCRIPTIF}</td></tr>
+                        <tr><td><strong>Commune :</strong></td><td>${feature.properties.COMMUNE}</td></tr>
+                        <tr><td><strong>Quartier :</strong></td><td>${feature.properties.QUARTIER}</td></tr>
+                        <tr><td><strong>Nom struct :</strong></td><td>${feature.properties.OBSERVATIO}</td></tr>
+                    </table>
+                `);
             }
         }).addTo(map);
 
-        // Localisation de l'utilisateur
+        // Fonction de localisation
         function locateUser() {
             map.locate({ setView: true, maxZoom: 16 });
         }
 
+        // Gestion de la localisation réussie
         function onLocationFound(e) {
-            var radius = e.accuracy / 2; // Rayon de précision
-            L.marker(e.latlng)
-                .addTo(map)
+            var radius = e.accuracy / 2;
+            L.marker(e.latlng).addTo(map)
                 .bindPopup("Vous êtes ici, avec une précision de " + Math.round(radius) + " mètres.")
                 .openPopup();
-            L.circle(e.latlng, radius).addTo(map); // Cercle de précision
+            L.circle(e.latlng, radius).addTo(map);
         }
 
+        // Gestion d'erreurs de localisation
         function onLocationError(e) {
-            alert("Localisation impossible : " + e.message + "\nVeuillez activer votre GPS et autoriser la localisation.");
+            alert("Erreur de localisation : " + e.message + "\nVeuillez activer le GPS et autoriser la localisation.");
         }
 
-        // Gestion des événements de localisation
+        // Événements de localisation
         map.on('locationfound', onLocationFound);
         map.on('locationerror', onLocationError);
 
-        // Bouton de demande de localisation
-        document.getElementById('locate-btn').addEventListener('click', function () {
-            locateUser();
-        });
+        // Bouton de localisation
+        document.getElementById('locate-btn').addEventListener('click', locateUser);
     </script>
 </body>
 </html>
